@@ -140,3 +140,87 @@ def complete_template_detail(request, template_id):
     )
 
     return Response(response)
+
+from restapi.services.template_section_service import (
+    create_template_section,
+    get_all_template_sections,
+    get_template_section_by_id,
+    update_template_section,
+    delete_template_section,
+    reorder_template_sections
+)
+
+from restapi.services.template_field_service import (
+    create_template_field,
+    get_all_template_fields,
+    get_template_field_by_id,
+    update_template_field,
+    delete_template_field,
+    reorder_template_fields
+)
+
+
+# ─── TEMPLATE SECTION VIEWS ───────────────────────────────────────────────────
+
+@api_view(["GET", "POST"])
+def template_section_list_create(request, template_id):
+    if request.method == "GET":
+        response = get_all_template_sections(template_id)
+        return Response(response)
+    elif request.method == "POST":
+        data = request.data.copy()
+        data["template"] = template_id
+        response = create_template_section(data)
+        return Response(response)
+
+
+@api_view(["GET", "PUT", "DELETE"])
+def template_section_detail(request, section_id):
+    if request.method == "GET":
+        response = get_template_section_by_id(section_id)
+        return Response(response)
+    elif request.method == "PUT":
+        response = update_template_section(section_id, request.data)
+        return Response(response)
+    elif request.method == "DELETE":
+        response = delete_template_section(section_id)
+        return Response(response)
+
+
+@api_view(["PUT"])
+def template_section_reorder(request, template_id):
+    response = reorder_template_sections(request.data.get("sections_order", []))
+    return Response(response)
+
+
+# ─── TEMPLATE FIELD VIEWS ─────────────────────────────────────────────────────
+
+@api_view(["GET", "POST"])
+def template_field_list_create(request, section_id):
+    if request.method == "GET":
+        response = get_all_template_fields(section_id)
+        return Response(response)
+    elif request.method == "POST":
+        data = request.data.copy()
+        data["section"] = section_id
+        response = create_template_field(data)
+        return Response(response)
+
+
+@api_view(["GET", "PUT", "DELETE"])
+def template_field_detail(request, field_id):
+    if request.method == "GET":
+        response = get_template_field_by_id(field_id)
+        return Response(response)
+    elif request.method == "PUT":
+        response = update_template_field(field_id, request.data)
+        return Response(response)
+    elif request.method == "DELETE":
+        response = delete_template_field(field_id)
+        return Response(response)
+
+
+@api_view(["PUT"])
+def template_field_reorder(request, section_id):
+    response = reorder_template_fields(request.data.get("fields_order", []))
+    return Response(response)
