@@ -1,0 +1,59 @@
+name: TEMPLATE BACKEND CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Setup Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Login to Docker Hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Build Backend Docker Image
+      - name: Build Docker image
+        run: |
+          docker build --no-cache \
+          -f devops/Dockerfile \
+          -t ${{ secrets.DOCKER_USERNAME }}/template-backend:latest \
+          .
+
+      # Push Backend Image
+      - name: Push Docker image
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/template-backend:latest
+
+      # Deploy Backend to VPS
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            docker pull ${{ secrets.DOCKER_USERNAME }}/template-backend:latest
+
+            docker stop template-backend || true
+            docker rm template-backend || true
+
+            docker run -d \
+              --restart always \
+              --name template-backend \
+              -p 8005:8000 \
+              ${{ secrets.DOCKER_USERNAME }}/template-backend:latest
