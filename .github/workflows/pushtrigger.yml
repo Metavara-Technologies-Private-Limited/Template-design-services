@@ -60,9 +60,3 @@ jobs:
               --name template-backend \
               -p 8005:8000 \
               ${{ secrets.DOCKER_USERNAME }}/template-backend:latest
-
-            echo "Wait container boot"
-            sleep 12
-                   
-            echo "Run database migrations"
-            docker exec template-backend python manage.py migrate || true
