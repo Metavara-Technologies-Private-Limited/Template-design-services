@@ -1,4 +1,4 @@
-name: TEMPLATE BACKEND CI/CD
+name: TEMPLATE BACKEND PUSHTRIGGER
 
 on:
   push:
@@ -47,13 +47,22 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
+            echo "Pull latest image"
             docker pull ${{ secrets.DOCKER_USERNAME }}/template-backend:latest
 
-            docker stop template-backend || true
-            docker rm template-backend || true
+            echo "Stop old container"
+            docker ps -aq --filter "name=template-backend" | xargs -r docker stop
+            docker ps -aq --filter "name=template-backend" | xargs -r docker rm
 
+            echo "Start new container"
             docker run -d \
               --restart always \
               --name template-backend \
               -p 8005:8000 \
               ${{ secrets.DOCKER_USERNAME }}/template-backend:latest
+
+            echo "Wait container boot"
+            sleep 12
+                   
+            echo "Run database migrations"
+            docker exec template-backend python manage.py migrate || true
