@@ -19,12 +19,37 @@ def create_template_master(data):
         "errors": serializer.errors
     }
 
-
-def get_all_template_masters():
+def get_all_template_masters(
+    search=None,
+    status=None,
+    page=1,
+    page_size=2
+):
 
     templates = TemplateMaster.objects.all()
 
-    serializer = TemplateMasterSerializer(templates, many=True)
+    if search:
+
+        templates = templates.filter(
+            template_name__icontains=search
+        )
+
+    if status:
+
+        templates = templates.filter(
+            status=status
+        )
+
+    start = (page - 1) * page_size
+
+    end = start + page_size
+
+    templates = templates[start:end]
+
+    serializer = TemplateMasterSerializer(
+        templates,
+        many=True
+    )
 
     return serializer.data
 
