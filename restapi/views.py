@@ -19,16 +19,36 @@ def template_master_list_create(request):
 
     if request.method == "GET":
 
-        data = get_all_template_masters()
+        search = request.GET.get("search")
 
-        return Response(data)
+        status = request.GET.get("status")
+
+        page = int(request.GET.get("page", 1))
+
+        page_size = int(request.GET.get("page_size", 2))
+
+        data = get_all_template_masters(
+        search=search,
+        status=status,
+        page=page,
+        page_size=page_size
+        )
+
+        return Response({
+            "status": True,
+            "message": "Templates fetched successfully",
+            "data": data})
 
     elif request.method == "POST":
 
         response = create_template_master(request.data)
 
-        return Response(response)
-    
+        return Response({
+            "status": True,
+            "message": "Template created successfully",
+            "data": response})
+
+
 
 @api_view(["GET", "PUT", "DELETE"])
 def template_master_detail(request, template_id):
